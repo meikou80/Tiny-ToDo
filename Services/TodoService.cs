@@ -4,23 +4,23 @@ namespace TinyToDo.Services;
 
 public static class TodoService
 {
-    private static List<TodoItem> Todos { get; }
+    private static List<TodoModel> Todos { get; }
     private static int nextId = 1;
 
     static TodoService()
     {
-        Todos = new List<TodoItem>();
+        Todos = new List<TodoModel>();
     }
 
-    public static List<TodoItem> GetAll() => Todos;
+    public static List<TodoModel> GetAll() => Todos;
 
-    public static TodoItem? Get(int id) => Todos.FirstOrDefault(t => t.Id == id);
+    public static TodoModel? Get(int id) => Todos.FirstOrDefault(t => t.Id == id);
 
     public static void Add(string content)
     {
         if (!string.IsNullOrEmpty(content))
         {
-            Todos.Add(new TodoItem 
+            Todos.Add(new TodoModel 
             { 
                 Id = nextId++, 
                 Content = content, 
@@ -45,4 +45,3 @@ public static class TodoService
         todo.IsCompleted = !todo.IsCompleted;
     }
 }
-

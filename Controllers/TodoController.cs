@@ -23,4 +23,3 @@ public class TodoController : Controller
         return RedirectToAction("Todo");
     }
 }
-
