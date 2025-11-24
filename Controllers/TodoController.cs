@@ -10,7 +10,11 @@ public class TodoController : Controller
     [HttpGet]
     public IActionResult Todo()
     {
-        var todos = TodoService.GetAll();
+        // セッションIDを取得
+        var sessionId = SessionService.EnsureSession(HttpContext);
+        // セッションに紐付くToDoリストを取得
+        var todos = TodoService.GetAll(sessionId);
+        // ビューを返す
         return View(todos);
     }
 
@@ -19,7 +23,10 @@ public class TodoController : Controller
     [HttpPost]
     public IActionResult Add(string todo)
     {
-        TodoService.Add(todo);
+        // セッションIDを取得
+        var sessionId = SessionService.EnsureSession(HttpContext);
+        // ToDoを追加
+        TodoService.Add(sessionId, todo);
         return RedirectToAction("Todo");
     }
 }
