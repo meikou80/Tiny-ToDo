@@ -3,7 +3,7 @@ using TinyToDo.Services;
 
 namespace TinyToDo.Controllers;
 
-public class HomeController : Controller
+public class TodoController : Controller
 {
     // /todoエンドポイント
     [Route("todo")]

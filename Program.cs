@@ -13,7 +13,7 @@ app.UseRouting();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Todo}/{action=Index}/{id?}");
 
 // ポート8080でリッスン
 app.Run("http://localhost:8080");
