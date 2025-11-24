@@ -1,0 +1,33 @@
+@model List<TinyToDo.Models.TodoItem>
+
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tiny ToDo</title>
+    <link rel="stylesheet" href="~/static/todo.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Tiny ToDo</h1>
+    </header>
+    <main>
+      <form method="post" action="add">
+        <input type="text" name="todo" placeholder="Add a new todo" />
+        <button type="submit">Add</button>
+      </form>
+      <ul class="todo-list">
+        @foreach (var item in Model)
+        {
+        <li class="todo-item @(item.IsCompleted ? "completed" : "")">
+          <div class="todo-item-left">
+            <input type="checkbox" @(item.IsCompleted ? "checked" : "") />
+            <label>@item.Content</label>
+          </div>
+        </li>
+        }
+      </ul>
+    </main>
+  </body>
+</html>
+
