@@ -6,7 +6,7 @@ namespace TinyToDo.Controllers;
 public class TodoController : Controller
 {
     // /todoエンドポイント
-    [Route("todo")]
+    [Route("/todo")]
     [HttpGet]
     public IActionResult Todo()
     {
@@ -19,7 +19,7 @@ public class TodoController : Controller
     }
 
     // /addエンドポイント
-    [Route("add")]
+    [Route("/add")]
     [HttpPost]
     public IActionResult Add(string todo)
     {
