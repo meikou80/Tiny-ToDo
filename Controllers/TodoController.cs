@@ -11,9 +11,9 @@ public class TodoController : Controller
     public IActionResult Todo()
     {
         // セッションIDを取得
-        var sessionId = SessionService.EnsureSession(HttpContext);
+        var session = SessionService.Instance.EnsureSession(HttpContext);
         // セッションに紐付くToDoリストを取得
-        var todos = TodoService.GetAll(sessionId);
+        var todos = TodoService.GetAll(session.SessionId);
         // ビューを返す
         return View(todos);
     }
@@ -24,9 +24,9 @@ public class TodoController : Controller
     public IActionResult Add(string todo)
     {
         // セッションIDを取得
-        var sessionId = SessionService.EnsureSession(HttpContext);
+        var session = SessionService.Instance.EnsureSession(HttpContext);
         // ToDoを追加
-        TodoService.Add(sessionId, todo);
+        TodoService.Add(session.SessionId, todo);
         return RedirectToAction("Todo");
     }
 }

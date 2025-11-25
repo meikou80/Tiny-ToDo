@@ -28,4 +28,3 @@ dotnet run
 - テンプレート構文: `{{range .}}` → `@foreach`
 - 静的ファイル: `static/` → `wwwroot/static/`
 - ポート8080で同じように動作します
-
