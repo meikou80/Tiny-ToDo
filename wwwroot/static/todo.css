@@ -1,4 +1,18 @@
-@import url("base.css");
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #333;
+  margin: 0;
+}
+
+header {
+  background-color: #3f51b5;
+  color: #fff;
+  padding: 0.8rem;
+}
+
+header h1 {
+  margin: 0;
+}
 
 main {
   margin: 0 auto;
@@ -17,55 +31,51 @@ ul.todo-list li.todo-item {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-form.new-todo {
+ul.todo-list li.todo-item .todo-item-container {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+}
+
+ul.todo-list li.todo-item .todo {
+  flex-grow: 1;
+  border: none;
+  font-size: 1rem;
+  padding: 4px 8px;
+  margin: 2px 8px 2px 4px;
+}
+
+ul.todo-list li.todo-item .todo:focus {
+  outline-color: #dddddd;
+}
+
+form {
   display: flex;
   margin-bottom: 20px;
 }
 
-form.new-todo > input[type="text"] {
+input[type="text"].new-todo {
   flex-grow: 1;
   padding: 10px;
-  font-size: 16px;
+  font-size: 1rem;
   border: solid;
   border-color: #ddd;
-  border-radius: 6px 0 0 6px;
+  border-radius: 3px 0 0 3px;
 }
 
-form.new-todo > button[type="submit"] {
+button[type="submit"] {
   background-color: #3f51b5;
   color: #fff;
   border: none;
-  border-radius: 0 6px 6px 0;
+  border-radius: 0 3px 3px 0;
   padding: 10px 20px;
   cursor: pointer;
 }
 
-form.new-todo >:not(:first-child) {
-  margin-left: -1px;
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-}
-
-form.new-todo > :not(:last-child) {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
-form.new-todo >:not(:last-child):focus {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  outline: none;
-  border-color: #3f51b5;
-}
-
-form.new-todo button[type="submit"]:hover {
+button[type="submit"]:hover {
   background-color: #2f3a7d;
 }
 
-.error-message {
-  margin: 0.5rem 0;
-  padding: 0.5rem;
-  color: #fff;
-  background-color: #f00;
-  border-radius: 4px;
+.hidden {
+  display: none;
 }

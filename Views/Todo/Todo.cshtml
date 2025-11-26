@@ -7,30 +7,37 @@
     <title>Tiny ToDo</title>
     <link rel="stylesheet" href="~/static/todo.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script defer src="~/static/todo.js"></script>
   </head>
   <body>
-    <header>
-      <h1>Tiny ToDo</h1>
-      <div class="info">
-        <span id="info-version">User management version</span>
-        <span id="info-account">User : @ViewBag.UserId / Expires : @ViewBag.Expires</span>
-        <form id="logout" method="post" action="/logout">
-          <button type="submit">Logout</button>
+    <header style="display: flex; justify-content: space-between; align-items: flex-end;">
+      <div>
+        <h1 style="margin: 0 0 0.3rem 0;">Tiny ToDo</h1>
+        <div style="font-size: 0.875rem;">User management version</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.875rem;">
+        <span>User : @ViewBag.UserId / Expires : @ViewBag.Expires</span>
+        <form id="logout" method="post" action="/logout" style="margin: 0;">
+          <button type="submit" style="padding: 6px 16px; background-color: rgba(255,255,255,0.9); color: #3f51b5; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">Logout</button>
         </form>
       </div>
     </header>
     <main>
-      <form class="new-todo" method="post" action="/add">
-        <input type="text" name="todo" placeholder="Add a new ToDo" />
+      <form method="post" action="/add">
+        <input type="text" class="new-todo" name="todo" placeholder="Add a new ToDo" />
         <button type="submit">Add</button>
       </form>
       <ul class="todo-list">
         @foreach (var item in Model)
         {
-        <li class="todo-item @(item.IsCompleted ? "completed" : "")">
-          <div class="todo-item-left">
+        <li class="todo-item @(item.IsCompleted ? "completed" : "")" data-id="@item.Id">
+          <div class="todo-item-container">
             <input type="checkbox" @(item.IsCompleted ? "checked" : "") />
-            <span>@item.Content</span>
+            <input type="text" class="todo" value="@item.Content" readonly />
+            <div class="todo-item-control hidden">
+              <button class="btn-save">save</button>
+              <button class="btn-cancel">cancel</button>
+            </div>
           </div>
         </li>
         }
