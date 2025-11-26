@@ -8,16 +8,21 @@ namespace TinyToDo.Services;
 public  class SessionService
 {
     private const string CookieSessionId = "sessionId";
+    private const ulong SessionIdSecret = 123456789;
 
     // セッションIDをキーとしてセッション情報を保持するディクショナリ
     private readonly Dictionary<string, HttpSession> _sessions = new();
+    private readonly SessionIdSigner _sessionIdSigner;
 
     // シングルトンインスタンス
     private static SessionService? _instance;
     private static readonly object _lock = new object();
 
     // プライベートコンストラクタ
-    private SessionService() { }
+    private SessionService() 
+    {
+        _sessionIdSigner = new SessionIdSigner(SessionIdSecret);
+    }
 
     // シングルトンインスタンスを取得
     public static SessionService Instance
@@ -54,14 +59,9 @@ public  class SessionService
     }
 
     // セッションIDを生成する。
-    private static string MakeSessionId()
+    private string MakeSessionId()
     {
-        var randomBytes = new byte[16];
-        RandomNumberGenerator.Fill(randomBytes);
-        return Convert.ToBase64String(randomBytes)
-        .Replace("+", "-")
-        .Replace("/", "_")
-        .Replace("=", "");
+        return _sessionIdSigner.GenerateSignedSessionId();
     }
 
     // セッションを削除する
@@ -122,6 +122,13 @@ public  class SessionService
         if (!context.Request.Cookies.TryGetValue(CookieSessionId, out var sessionId))
         {
             // CookieにセッションIDが存在しない場合
+            return null;
+        }
+
+        // 署名を検証
+        if (!_sessionIdSigner.VerifySessionId(sessionId))
+        {
+            Console.WriteLine($"Invalid session ID signature: {sessionId}");
             return null;
         }
 
