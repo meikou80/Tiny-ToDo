@@ -1,32 +1,71 @@
-body {
-    color: #333;
-    margin: 0;
-  }
-  
-  header {
-    background-color: #3f51b5;
-    color: #fff;
-    padding: 16px;
-  }
-  
-  header h1 {
-    margin: 0;
-  }
-  
-  main {
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #fff;
-  }
-  
-  ul.todo-list {
-    padding-left: 0px;
-  }
-  
-  ul.todo-list li.todo-item {
-    list-style: none;
-    padding: 1.5ex 1em;
-    margin: 1ex 0.5em;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
+@import url("base.css");
 
+main {
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #fff;
+}
+
+ul.todo-list {
+  padding-left: 0px;
+}
+
+ul.todo-list li.todo-item {
+  list-style: none;
+  padding: 1.5ex 1em;
+  margin: 1ex 0.5em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+form.new-todo {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+form.new-todo > input[type="text"] {
+  flex-grow: 1;
+  padding: 10px;
+  font-size: 16px;
+  border: solid;
+  border-color: #ddd;
+  border-radius: 6px 0 0 6px;
+}
+
+form.new-todo > button[type="submit"] {
+  background-color: #3f51b5;
+  color: #fff;
+  border: none;
+  border-radius: 0 6px 6px 0;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+form.new-todo >:not(:first-child) {
+  margin-left: -1px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+form.new-todo > :not(:last-child) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+form.new-todo >:not(:last-child):focus {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  outline: none;
+  border-color: #3f51b5;
+}
+
+form.new-todo button[type="submit"]:hover {
+  background-color: #2f3a7d;
+}
+
+.error-message {
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  color: #fff;
+  background-color: #f00;
+  border-radius: 4px;
+}

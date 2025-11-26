@@ -39,9 +39,10 @@ public class UserAccount
         return BCrypt.Net.BCrypt.Verify(plainPassword, HashedPassword);
     }
 
-    // 有効期限をテキスト形式で返す
+    // 有効期限をテキスト形式で返す（JST）
     public string ExpiresText()
     {
-        return Expires.ToString("yyyy/MM/dd HH:mm:ss");
+        // UTC時刻をJST（UTC+9時間）に変換
+        return Expires.AddHours(9).ToString("yyyy/MM/dd HH:mm:ss");
     }
 }
