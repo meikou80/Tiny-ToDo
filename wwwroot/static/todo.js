@@ -186,12 +186,28 @@ function addTodoItem(todoItem) {
 
   // 編集操作用のイベントハンドラを登録                      // <4>
   listElement.querySelector('input[type="text"].todo').addEventListener("click", onClickTodoInput);
+  listElement.querySelector('input[type="text"].todo').addEventListener("keydown", onKeydownTodoEdit);
   listElement.querySelector('button.btn-cancel').addEventListener("click", onClickCancelButton);
   listElement.querySelector('button.btn-save').addEventListener("click", onClickSaveButton);
 
   // li要素を親のul要素に追加                                // <5>
   const todoListElement = document.querySelector("ul#todo-list");
   todoListElement.insertAdjacentElement("afterbegin", listElement);
+}
+
+/**
+ * ToDo項目編集中にEnterキーが押されたときのイベントハンドラ。
+ * Enterキーでsaveボタンをクリックして保存する。
+ * @param {KeyboardEvent} event キーボードイベント
+ */
+function onKeydownTodoEdit(event) {
+  if (event.isComposing || event.keyCode === 229) {
+    return;
+  }
+  if (event.code === "Enter") {
+    const saveButton = event.target.nextElementSibling.querySelector('button.btn-save');
+    saveButton.click();
+  }
 }
 
 /**
@@ -209,9 +225,12 @@ function onClickSaveButton(event) {
   const request = {
     method: "POST",
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
+      "Content-Type": "application/json"
     },
-    body: `id=${todoInput.id}&todo=${todoInput.value}`          // <2>
+    body: JSON.stringify({
+      id: todoInput.id,
+      todo: todoInput.value
+    })
   };
 
   // FetchAPIを使ってPOSTリクエストを送信

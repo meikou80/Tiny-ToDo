@@ -73,12 +73,12 @@ public class TodoController : Controller
     // /editエンドポイント
     [Route("/edit")]
     [HttpPost]
-    public IActionResult Edit(string id, string todo)
+    public IActionResult Edit([FromBody] TodoEditRequest request)
     {
         // セッション情報を取得
         var session = GetSession();
         // ToDoを更新
-        var result = TodoService.Update(session.UserAccount, id, todo);
+        var result = TodoService.Update(session.UserAccount, request.Id, request.Todo);
         if (result is null)
         {
             // 更新失敗（ToDoが見つからない）
@@ -86,7 +86,7 @@ public class TodoController : Controller
                 "ToDo項目の更新に失敗しました。ユーザーID={UserId} セッションID={SessionId} ToDoID={TodoId}",
                 session.UserAccount?.Id,
                 session.SessionId,
-                id
+                request.Id
             );
             return NotFound("ToDo項目が見つかりませんでした。");
         }
@@ -96,11 +96,16 @@ public class TodoController : Controller
             "ToDo項目を更新しました。ユーザーID={UserId} セッションID={SessionId} ToDoID={TodoId} 内容={Content}",
             session.UserAccount?.Id,
             session.SessionId,
-            id,
-            todo
+            request.Id,
+            request.Todo
         );
         
-        return Ok();
+        // 更新後のデータをJSON形式で返す
+        return Json(new TodoItemResponse
+        {
+            Id = result.Id,
+            Todo = result.Content
+        });
     }
 
     // /logoutエンドポイント
