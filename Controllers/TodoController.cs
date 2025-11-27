@@ -8,6 +8,14 @@ namespace TinyToDo.Controllers;
 [RequireAuthentication]
 public class TodoController : Controller
 {
+    private readonly ILogger<TodoController> _logger;
+
+    // コンストラクタでILoggerを注入
+    public TodoController(ILogger<TodoController> logger)
+    {
+        _logger = logger;
+    }
+
     // セッション情報をHttpContext.Itemsから取得するヘルパーメソッド
     private HttpSession GetSession()
     {
@@ -42,6 +50,15 @@ public class TodoController : Controller
         var session = GetSession();
         // ToDoを追加
         TodoService.Add(session.UserAccount, todo);
+        
+        // ログ出力
+        _logger.LogInformation(
+            "ToDo項目を追加しました。ユーザーID={UserId} セッションID={SessionId} 内容={Content}",
+            session.UserAccount?.Id,
+            session.SessionId,
+            todo
+        );
+        
         return RedirectToAction("Todo");
     }
 
@@ -56,11 +73,25 @@ public class TodoController : Controller
         var result = TodoService.Update(session.UserAccount, id, todo);
         if (result is null)
         {
-            // 更新失敗（ToDoが見つからない、またはゲストユーザー）
-            return StatusCode(500, "ToDo項目の更新に失敗しました。");
+            // 更新失敗（ToDoが見つからない）
+            _logger.LogWarning(
+                "ToDo項目の更新に失敗しました。ユーザーID={UserId} セッションID={SessionId} ToDoID={TodoId}",
+                session.UserAccount?.Id,
+                session.SessionId,
+                id
+            );
+            return NotFound("ToDo項目が見つかりませんでした。");
         }
 
-        Console.WriteLine($"Todo item updated. sessionId={session.SessionId} itemId={id} todo={todo}");
+        // 成功ログ
+        _logger.LogInformation(
+            "ToDo項目を更新しました。ユーザーID={UserId} セッションID={SessionId} ToDoID={TodoId} 内容={Content}",
+            session.UserAccount?.Id,
+            session.SessionId,
+            id,
+            todo
+        );
+        
         return Ok();
     }
 
@@ -70,6 +101,13 @@ public class TodoController : Controller
     public IActionResult Logout()
     {
         var session = GetSession();
+        
+        _logger.LogInformation(
+            "ユーザーがログアウトしました。ユーザーID={UserId} セッションID={SessionId}",
+            session.UserAccount?.Id,
+            session.SessionId
+        );
+        
         SessionService.Instance.RevokeSession(HttpContext, session.SessionId);
         SessionService.Instance.StartSession(HttpContext);
         return Redirect("/login");
