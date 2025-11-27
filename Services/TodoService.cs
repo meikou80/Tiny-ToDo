@@ -4,72 +4,96 @@ namespace TinyToDo.Services;
 
 public static class TodoService
 {
-    // セッションIDをキーとしてToDoリストを保持するマップ
-    private static Dictionary<string, List<TodoModel>> TodoLists { get; } = new();
-    private static Dictionary<string, int> NextIds { get; } = new();
-
-    // セッションIDに紐付くToDoリストを取得する。
-    private static List<TodoModel> GetTodoList(string sessionId)
+    // ユーザーアカウントに紐付く全ToDoを取得する。
+    public static List<TodoModel> GetAll(UserAccount? account)
     {
-        if (!TodoLists.TryGetValue(sessionId, out var todos))
+        if (account is null)
         {
-            todos = new List<TodoModel>();
-            TodoLists[sessionId] = todos;
-            NextIds[sessionId] = 1;
+            return new List<TodoModel>();
         }
-        return todos;
-    }
-
-    // セッションに紐付く全ToDoを取得する。
-    public static List<TodoModel> GetAll(string sessionId)
-    {
-        return GetTodoList(sessionId);
+        return account.ToDoList;
     }
 
     // 指定されたIDのToDoを取得する。
-    public static TodoModel? Get(string sessionId, int id)
+    public static TodoModel? Get(UserAccount? account, string id)
     {
-        var todos = GetTodoList(sessionId);
-        return todos.FirstOrDefault(t => t.Id == id);
+        if (account is null)
+        {
+            return null;
+        }
+        return account.ToDoList.FirstOrDefault(t => t.Id == id);
     }
 
-    // セッション上のToDoリストにToDoを追加する。
-    public static void Add(string sessionId, string content)
+    // ユーザーアカウント上のToDoリストにToDoを追加する。
+    public static void Add(UserAccount? account, string content)
     {
+        if (account is null)
+        {
+            return;
+        }
+
         content = content?.Trim() ?? "";
         if (!string.IsNullOrEmpty(content))
         {
-            var todos = GetTodoList(sessionId);
-            if (!NextIds.ContainsKey(sessionId))
-            {
-                NextIds[sessionId] = 1;
-            }
+            var id = TodoIdGenerator.GenerateId(content);
 
-            todos.Add(new TodoModel 
-            { 
-                Id = NextIds[sessionId]++, 
-                Content = content, 
-                IsCompleted = false 
+            account.ToDoList.Add(new TodoModel
+            {
+                Id = id,
+                Content = content,
+                IsCompleted = false
             });
         }
     }
 
     // 指定されたIDのToDoを削除する。
-    public static void Delete(string sessionId, int id)
+    public static void Delete(UserAccount? account, string id)
     {
-        var todo = Get(sessionId, id);
-        if (todo is null)
+        if (account is null)
+        {
             return;
-        var todos = GetTodoList(sessionId);
-        todos.Remove(todo);
+        }
+        var todo = Get(account, id);
+        if (todo is null)
+        {
+            return;
+        }
+        account.ToDoList.Remove(todo);
     }
 
     // 指定されたIDのToDoの完了状態を切り替える。
-    public static void Toggle(string sessionId, int id)
+    public static void Toggle(UserAccount? account, string id)
     {
-        var todo = Get(sessionId, id);
+        if (account is null)
+        {
+            return;
+        }
+        var todo = Get(account, id);
         if (todo is null)
             return;
         todo.IsCompleted = !todo.IsCompleted;
+    }
+
+    // 指定されたIDのToDoの内容を更新する。
+    public static TodoModel? Update(UserAccount? account, string id, string newContent)
+    {
+        if (account is null)
+        {
+            return null;
+        }
+
+        var todo = Get(account, id);
+        if (todo is null)
+        {
+            return null;
+        }
+
+        newContent = newContent?.Trim() ?? "";
+        if (!string.IsNullOrEmpty(newContent))
+        {
+            todo.Content = newContent;
+        }
+
+        return todo;
     }
 }

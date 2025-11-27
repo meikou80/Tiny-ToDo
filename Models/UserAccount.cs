@@ -16,7 +16,7 @@ public class UserAccount
     // アカウントの有効期限
     public DateTime Expires { get; set; }
     // ToDoリスト
-    public List<string> ToDoList { get; set; } = new();
+    public List<TodoModel> ToDoList { get; set; } = new();
 
     // ユーザアカウント情報を生成する
     public UserAccount(string userId, string plainPassword, DateTime expires)
@@ -24,7 +24,7 @@ public class UserAccount
         Id = userId;
         HashedPassword = HashPassword(plainPassword);
         Expires = expires;
-        ToDoList = new List<string>();
+        ToDoList = new List<TodoModel>();
     }
 
     // bcryptアルゴリズムでパスワードをハッシュ化する

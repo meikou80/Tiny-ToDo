@@ -26,8 +26,8 @@ public class TodoController : Controller
         ViewBag.UserId = session.UserAccount?.Id ?? "Guest";
         ViewBag.Expires = session.UserAccount?.ExpiresText() ?? "";
         
-        // セッションに紐付くToDoリストを取得
-        var todos = TodoService.GetAll(session.SessionId);
+        // ユーザーアカウントに紐付くToDoリストを取得
+        var todos = TodoService.GetAll(session.UserAccount);
         
         // ビューを返す
         return View(todos);
@@ -38,10 +38,10 @@ public class TodoController : Controller
     [HttpPost]
     public IActionResult Add(string todo)
     {
-        // セッションIDを取得
+        // セッション情報を取得
         var session = GetSession();
         // ToDoを追加
-        TodoService.Add(session.SessionId, todo);
+        TodoService.Add(session.UserAccount, todo);
         return RedirectToAction("Todo");
     }
 
