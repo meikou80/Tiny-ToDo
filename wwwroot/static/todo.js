@@ -20,6 +20,8 @@ function setup() {
   addEventListenerByQuery('input[type="text"].todo', "click", onClickTodoInput);
   addEventListenerByQuery('button.btn-cancel', "click", onClickCancelButton);
   addEventListenerByQuery('button.btn-save', "click", onClickSaveButton);
+
+  window.addEventListener("hashchange", onHashChange);
 }
 
 /**
@@ -33,6 +35,37 @@ function addEventListenerByQuery(query, eventName, callback) {
   for (let i = 0; i < elements.length; i++) {
     elements[i].addEventListener(eventName, callback);
   }
+}
+
+/**
+ * ハッシュフラグメントが変化したときのイベントハンドラ。
+ * @param {event} hashchangeイベントオブジェクト
+ */
+function onHashChange(event) {
+  // 編集中のToDo項目があれば、編集をキャンセルする
+  const oldInputElement = getToDoInputFromUrl(event.oldURL); // <1>
+  if (isNotNull(oldInputElement)) {
+    cancelTodoEdit(oldInputElement);
+  }
+
+  // フラグメントで指定されたToDo項目を編集状態にする
+  const curInputElement = getToDoInputFromUrl(event.newURL); // <2>
+  if (isNotNull(curInputElement)) {
+    enableTodoInput(curInputElement);
+  }
+}
+
+/**
+ * URLのハッシュフラグメントから、対応するToDo Input要素を取得する。
+ * @param {string} URL
+ */
+function getToDoInputFromUrl(url) {
+  const match = new URL(url).hash.match(/^#edit\/([0-9a-f]+)$/);
+  if (isNull(match)) {
+    return;
+  }
+  const todoItemId = match[1];
+  return document.getElementById(todoItemId);
 }
 
 /**
@@ -140,9 +173,18 @@ function fetchTodoItems() {
       });
 
       // 画面の状態を復元する
-      // ハッシュフラグメントのときにrestoreState関数を実装予定
-      //restoreState();
+      restoreState();
     });
+}
+
+/**
+ * ハッシュフラグメントから画面の状態を復元する
+ */
+function restoreState() {
+  const curInputElement = getToDoInputFromUrl(location.href);
+  if (isNotNull(curInputElement)) {
+    enableTodoInput(curInputElement);
+  }
 }
 
 /**
