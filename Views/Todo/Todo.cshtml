@@ -33,7 +33,7 @@
         <li class="todo-item @(item.IsCompleted ? "completed" : "")" data-id="@item.Id">
           <div class="todo-item-container">
             <input type="checkbox" @(item.IsCompleted ? "checked" : "") />
-            <input type="text" class="todo" value="@item.Content" readonly />
+            <input type="text" class="todo" id="@item.Id" value="@item.Content" readonly />
             <div class="todo-item-control hidden">
               <button class="btn-save">save</button>
               <button class="btn-cancel">cancel</button>
