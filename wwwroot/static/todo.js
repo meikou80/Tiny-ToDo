@@ -8,6 +8,13 @@ let currentEditingTodo;
  * 各要素にイベントハンドラを設定する。
  */
 function setup() {
+  // Addボタンにイベントリスナーを登録
+  const addButton = document.getElementById("btn-add");
+  if (addButton) {
+    addButton.addEventListener("click", onClickAddButton);
+  }
+  
+  // 既存のToDo項目にイベントリスナーを登録
   addEventListenerByQuery('input[type="text"].todo', "click", onClickTodoInput);
   addEventListenerByQuery('button.btn-cancel', "click", onClickCancelButton);
   addEventListenerByQuery('button.btn-save', "click", onClickSaveButton);
@@ -110,6 +117,81 @@ function cancelTodoEdit(todoInput) {
   // 編集内容を元に戻す
   todoInput.value = todoInput.dataset.originalValue;
   currentEditingTodo = null;
+}
+
+/**
+ * Addボタンがクリックされた時のイベントハンドラ。
+ */
+function onClickAddButton() {
+  // 新しいToDoを入力したinput要素の取得
+  const addInput = document.getElementById("new-todo");
+
+  if (addInput.value.trim() === "") {
+    return;
+  }
+
+  // POSTリクエストの準備
+  const request = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({                 // <2>
+      todo: addInput.value,
+    })
+  };
+
+  // リクエストの送信
+  fetch("/add", request)                   // <1>
+    .then(response => {
+      if (!response.ok) {
+        // エラー時はログイン画面に戻る
+        location.href = "/login";
+      }
+
+      // 入力したToDoをクリア
+      addInput.value = "";
+      return response.json();
+    })
+    .then(data => {
+      // サーバから受信したIDを元に、新しいToDoを描画
+      addTodoItem(data);                   // <3>
+    })
+    .catch((err) => {
+      console.error("Failed to send request: ", err);
+    });
+}
+
+/**
+ * ToDo項目を画面に追加する。
+ * @param {Object} 追加するToDo項目
+ */
+function addTodoItem(todoItem) {
+  // ToDo項目を表示するためのli要素を生成してCSSクラスを追加  // <1>
+  const listElement = document.createElement("li");
+  listElement.classList.add("todo-item");
+
+  // li要素内部を構築                                         // <2>
+  todoItem = `
+    <div class="todo-item-container">
+      <input type="checkbox" />
+      <input type="text" class="todo" id="${todoItem.id}" value="${todoItem.todo}" readonly />
+      <div class="todo-item-control hidden">
+        <button class="btn-save">save</button>
+        <button class="btn-cancel">cancel</button>
+      </div>
+    </div>
+  `;
+  listElement.insertAdjacentHTML("afterbegin", todoItem);    // <3>
+
+  // 編集操作用のイベントハンドラを登録                      // <4>
+  listElement.querySelector('input[type="text"].todo').addEventListener("click", onClickTodoInput);
+  listElement.querySelector('button.btn-cancel').addEventListener("click", onClickCancelButton);
+  listElement.querySelector('button.btn-save').addEventListener("click", onClickSaveButton);
+
+  // li要素を親のul要素に追加                                // <5>
+  const todoListElement = document.querySelector("ul#todo-list");
+  todoListElement.insertAdjacentElement("afterbegin", listElement);
 }
 
 /**

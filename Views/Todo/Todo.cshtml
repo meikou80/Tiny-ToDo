@@ -23,11 +23,11 @@
       </div>
     </header>
     <main>
-      <form method="post" action="/add">
-        <input type="text" class="new-todo" name="todo" placeholder="Add a new ToDo" />
-        <button type="submit">Add</button>
-      </form>
-      <ul class="todo-list">
+      <div class="new-todo">
+        <input type="text" class="new-todo" id="new-todo" name="todo" placeholder="Add a new todo" />
+        <button id="btn-add" type="submit">Add</button>
+      </div>
+      <ul id="todo-list" class="todo-list">
         @foreach (var item in Model)
         {
         <li class="todo-item @(item.IsCompleted ? "completed" : "")" data-id="@item.Id">

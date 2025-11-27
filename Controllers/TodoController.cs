@@ -44,22 +44,30 @@ public class TodoController : Controller
     // /addエンドポイント
     [Route("/add")]
     [HttpPost]
-    public IActionResult Add(string todo)
+    public IActionResult Add([FromBody] TodoAddRequest request)
     {
         // セッション情報を取得
         var session = GetSession();
         // ToDoを追加
-        TodoService.Add(session.UserAccount, todo);
+        TodoService.Add(session.UserAccount, request.Todo);
+
+        // 追加されたToDo項目を取得
+        var todos = TodoService.GetAll(session.UserAccount);
+        var addedTodo = todos.LastOrDefault();
         
         // ログ出力
         _logger.LogInformation(
             "ToDo項目を追加しました。ユーザーID={UserId} セッションID={SessionId} 内容={Content}",
             session.UserAccount?.Id,
             session.SessionId,
-            todo
+            request.Todo
         );
         
-        return RedirectToAction("Todo");
+        return Json(new TodoItemResponse
+        {
+            Id = addedTodo?.Id ?? string.Empty,
+            Todo = addedTodo?.Content ?? string.Empty
+        });
     }
 
     // /editエンドポイント
