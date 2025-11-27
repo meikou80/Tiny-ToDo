@@ -42,7 +42,7 @@ public class LoginController : Controller
             Console.WriteLine($"login success : {account.Id}");
 
             // <5> ToDoページへリダイレクト
-            return Redirect("/todo");
+            return Redirect("/");
         }
         catch (UnauthorizedAccessException)
         {

@@ -22,6 +22,22 @@ public class TodoController : Controller
         return (HttpSession)HttpContext.Items["Session"]!;
     }
 
+    // /エンドポイント（HTMLページを返す）
+    [Route("/")]
+    [HttpGet]
+    public IActionResult Index()
+    {
+        // セッション情報を取得
+        var session = GetSession();
+
+        // ユーザー情報をViewBagに設定
+        ViewBag.UserId = session.UserAccount?.Id ?? "Guest";
+        ViewBag.Expires = session.UserAccount?.ExpiresText() ?? "";
+
+        // Todo.cshtmlビューを返す（データは空）
+        return View("Todo");
+    }
+
     // /todoエンドポイント
     [Route("/todo")]
     [HttpGet]
@@ -30,15 +46,18 @@ public class TodoController : Controller
         // セッション情報を取得
         var session = GetSession();
         
-        // ユーザー情報をViewBagに設定
-        ViewBag.UserId = session.UserAccount?.Id ?? "Guest";
-        ViewBag.Expires = session.UserAccount?.ExpiresText() ?? "";
-        
         // ユーザーアカウントに紐付くToDoリストを取得
         var todos = TodoService.GetAll(session.UserAccount);
         
-        // ビューを返す
-        return View(todos);
+        // TodoModelをTodoItemResponseに変換してJSON形式で返す
+        var items = todos.Select(t => new TodoItemResponse
+        {
+            Id = t.Id,
+            Todo = t.Content
+        }).ToList();
+        
+        // JSON形式で返す
+        return Json(new { items = items });
     }
 
     // /addエンドポイント

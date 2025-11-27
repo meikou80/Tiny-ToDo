@@ -8,6 +8,8 @@ let currentEditingTodo;
  * 各要素にイベントハンドラを設定する。
  */
 function setup() {
+  fetchTodoItems();
+
   // Addボタンにイベントリスナーを登録
   const addButton = document.getElementById("btn-add");
   if (addButton) {
@@ -117,6 +119,30 @@ function cancelTodoEdit(todoInput) {
   // 編集内容を元に戻す
   todoInput.value = todoInput.dataset.originalValue;
   currentEditingTodo = null;
+}
+
+/**
+ * ToDoリストを取得して表示。
+ */
+function fetchTodoItems() {
+  fetch("/todo")                          // <1>
+    .then(response => {
+      if (!response.ok) {
+        // エラー時はログイン画面に戻る
+        location.href = "/login";
+      }
+      return response.json();             // <2>
+    })
+    .then(data => {
+      // 取得したToDoを画面に追加する
+      data.items.forEach(todoItem => {    // <3>
+        addTodoItem(todoItem);
+      });
+
+      // 画面の状態を復元する
+      // ハッシュフラグメントのときにrestoreState関数を実装予定
+      //restoreState();
+    });
 }
 
 /**
