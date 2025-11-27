@@ -45,6 +45,25 @@ public class TodoController : Controller
         return RedirectToAction("Todo");
     }
 
+    // /editエンドポイント
+    [Route("/edit")]
+    [HttpPost]
+    public IActionResult Edit(string id, string todo)
+    {
+        // セッション情報を取得
+        var session = GetSession();
+        // ToDoを更新
+        var result = TodoService.Update(session.UserAccount, id, todo);
+        if (result is null)
+        {
+            // 更新失敗（ToDoが見つからない、またはゲストユーザー）
+            return StatusCode(500, "ToDo項目の更新に失敗しました。");
+        }
+
+        Console.WriteLine($"Todo item updated. sessionId={session.SessionId} itemId={id} todo={todo}");
+        return Ok();
+    }
+
     // /logoutエンドポイント
     [Route("/logout")]
     [HttpPost]

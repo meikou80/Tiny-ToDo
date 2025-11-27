@@ -117,10 +117,31 @@ function cancelTodoEdit(todoInput) {
  * @param {Event} イベントオブジェクト
  */
 function onClickSaveButton(event) {
+  // ブラウザ上で押されたSaveボタンに対応する要素を取得
   const saveBtn = event.target;
-  const todoInput = saveBtn.parentNode.previousElementSibling;
-  disableTodoInput(todoInput);
-  currentEditingTodo = null;
+  // Saveボタンに対応するInput要素を取得
+  const todoInput = saveBtn.parentNode.previousElementSibling;  // <1>
+  todoInput.blur();
+
+  // リクエストの準備
+  const request = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: `id=${todoInput.id}&todo=${todoInput.value}`          // <2>
+  };
+
+  // FetchAPIを使ってPOSTリクエストを送信
+  fetch("/edit", request)                                       // <3>
+    .then(() => {                                               // <4>
+      // 編集が成功したらInput要素を編集不可にする
+      disableTodoInput(todoInput);
+      currentEditingTodo = null;
+    })
+    .catch((err) => {
+      console.error("Failed to send request: ", err);
+    });
 }
 
 /**
