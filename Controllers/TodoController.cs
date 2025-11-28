@@ -38,16 +38,22 @@ public class TodoController : Controller
         return View("Todo");
     }
 
-    // /todoエンドポイント
-    [Route("/todo")]
+    // GET /todos
+    [Route("/todos")]
     [HttpGet]
-    public IActionResult Todo()
+    public IActionResult GetTodos()
     {
         // セッション情報を取得
         var session = GetSession();
-        
         // ユーザーアカウントに紐付くToDoリストを取得
         var todos = TodoService.GetAll(session.UserAccount);
+
+        _logger.LogInformation(
+            "ToDoリストを取得しました。ユーザーID={UserId} セッションID={SessionId} 件数={Count}",
+                session.UserAccount?.Id,
+                session.SessionId,
+                todos.Count
+        );
         
         // TodoModelをTodoItemResponseに変換してJSON形式で返す
         var items = todos.Select(t => new TodoItemResponse
@@ -60,10 +66,46 @@ public class TodoController : Controller
         return Json(new { items = items });
     }
 
-    // /addエンドポイント
-    [Route("/add")]
+    // GET /todos/{id}
+    [Route("/todos/{id}")]
+    [HttpGet]
+    public IActionResult GetTodo(string id)
+    {
+        // セッション情報を取得
+        var session = GetSession();
+        // ToDoを取得
+        var todo = TodoService.Get(session.UserAccount, id);
+
+        if (todo is null)
+        {
+            _logger.LogWarning(
+                "ToDo項目の取得に失敗しました。ユーザーID={UserId} セッションID={SessionId} ToDoID={TodoId}",
+                session.UserAccount?.Id,
+                session.SessionId,
+                id
+            );
+            return NotFound("ToDo項目の取得に失敗しました。");
+        }
+        
+        _logger.LogInformation(
+            "ToDo項目を取得しました。ユーザーID={UserId} セッションID={SessionId} ToDoID={TodoId} 内容={Content}",
+            session.UserAccount?.Id,
+            session.SessionId,
+            id,
+            todo.Content
+        );
+        
+        return Json(new TodoItemResponse
+        {
+            Id = todo.Id,
+            Todo = todo.Content
+        });
+    }
+
+    // POST /todos
+    [Route("/todos")]
     [HttpPost]
-    public IActionResult Add([FromBody] TodoAddRequest request)
+    public IActionResult AddTodo([FromBody] TodoAddRequest request)
     {
         // セッション情報を取得
         var session = GetSession();
@@ -73,49 +115,75 @@ public class TodoController : Controller
         // 追加されたToDo項目を取得
         var todos = TodoService.GetAll(session.UserAccount);
         var addedTodo = todos.LastOrDefault();
-        
-        // ログ出力
+
+        if (addedTodo is null)
+        {
+            _logger.LogWarning("ToDo項目の追加に失敗しました。ユーザーID={UserId} セッションID={SessionId} 内容={Content}",
+                session.UserAccount?.Id,
+                session.SessionId,
+                request.Todo
+            );
+            return BadRequest("ToDo項目の追加に失敗しました。");
+        }
+
         _logger.LogInformation(
-            "ToDo項目を追加しました。ユーザーID={UserId} セッションID={SessionId} 内容={Content}",
+            "ToDo項目を追加しました。ユーザーID={UserId} セッションID={SessionId} ToDoID={TodoId} 内容={Content}",
             session.UserAccount?.Id,
             session.SessionId,
+            addedTodo.Id,
             request.Todo
         );
-        
-        return Json(new TodoItemResponse
-        {
-            Id = addedTodo?.Id ?? string.Empty,
-            Todo = addedTodo?.Content ?? string.Empty
-        });
+
+        return CreatedAtAction(
+            nameof(GetTodo),           // GetTodoアクションを参照
+            new { id = addedTodo.Id }, // ルートパラメータ
+            new TodoItemResponse       // レスポンスボディ
+            {
+                Id = addedTodo.Id,
+                Todo = addedTodo.Content
+            }
+        );
     }
 
-    // /editエンドポイント
-    [Route("/edit")]
-    [HttpPost]
-    public IActionResult Edit([FromBody] TodoEditRequest request)
+    // PUT /todos/{id}
+    [Route("/todos/{id}")]
+    [HttpPut]
+    public IActionResult UpdateTodo(string id, [FromBody] TodoEditRequest request)
     {
         // セッション情報を取得
         var session = GetSession();
-        // ToDoを更新
-        var result = TodoService.Update(session.UserAccount, request.Id, request.Todo);
-        if (result is null)
+
+        // URLのIDとボディのIDの一致チェック（Go版と同様）
+        if (id != request.Id)
         {
-            // 更新失敗（ToDoが見つからない）
             _logger.LogWarning(
-                "ToDo項目の更新に失敗しました。ユーザーID={UserId} セッションID={SessionId} ToDoID={TodoId}",
+                "IDの不一致。ユーザーID={UserId} セッションID={SessionId} URLのID={UrlId} ボディのID={BodyId}",
                 session.UserAccount?.Id,
                 session.SessionId,
+                id,
                 request.Id
+            );
+            return BadRequest("IDが一致しません。");
+        }
+
+        // ToDoを更新
+        var result = TodoService.Update(session.UserAccount, id, request.Todo);
+
+        if (result is null)
+        {
+            _logger.LogWarning("ToDo項目の更新に失敗しました。ユーザーID={UserId} セッションID={SessionId} ToDoID={TodoId}",
+                session.UserAccount?.Id,
+                session.SessionId,
+                id
             );
             return NotFound("ToDo項目が見つかりませんでした。");
         }
 
-        // 成功ログ
         _logger.LogInformation(
             "ToDo項目を更新しました。ユーザーID={UserId} セッションID={SessionId} ToDoID={TodoId} 内容={Content}",
             session.UserAccount?.Id,
             session.SessionId,
-            request.Id,
+            id,
             request.Todo
         );
         
@@ -125,6 +193,39 @@ public class TodoController : Controller
             Id = result.Id,
             Todo = result.Content
         });
+    }
+
+    // DELETE /todos/{id}
+    [Route("/todos/{id}")]
+    [HttpDelete]
+    public IActionResult DeleteTodo(string id)
+    {
+        // セッション情報を取得
+        var session = GetSession();
+
+        // 削除前に存在確認
+        var todo = TodoService.Get(session.UserAccount, id);
+        if (todo is null)
+        {
+            _logger.LogWarning("ToDo項目が見つかりませんでした。ユーザーID={UserId} セッションID={SessionId} ToDoID={TodoId}",
+                session.UserAccount?.Id,
+                session.SessionId,
+                id
+            );
+            return NoContent();
+        }
+
+        // ToDoを削除
+        TodoService.Delete(session.UserAccount, id);
+
+        _logger.LogInformation(
+            "ToDo項目を削除しました。ユーザーID={UserId} セッションID={SessionId} ToDoID={TodoId}",
+            session.UserAccount?.Id,
+            session.SessionId,
+            id
+        );
+
+        return NoContent();
     }
 
     // /logoutエンドポイント
