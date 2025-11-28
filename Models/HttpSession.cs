@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Http;
+using TinyToDo.Services;
+
 namespace TinyToDo.Models;
 
 // セッション情報を保持するクラス
@@ -36,6 +38,7 @@ public class HttpSession
             Expires = new DateTimeOffset(Expires),
             HttpOnly = true,
             Path = "/",
+            Secure = SessionService.Instance.IsSecureCookie
         };
         context.Response.Cookies.Append("sessionId", SessionId, cookieOptions);
     }

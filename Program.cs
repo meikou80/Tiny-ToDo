@@ -1,19 +1,44 @@
+using TinyToDo.Configuration;
+using TinyToDo.Middlewares;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // サービスの追加
 builder.Services.AddControllersWithViews();
 
+// ロギング設定（コンソール出力）
+builder.Services.AddLogging(logging =>
+{
+    logging.ClearProviders();
+    logging.AddConsole();
+    logging.SetMinimumLevel(LogLevel.Information);
+});
+
 var app = builder.Build();
 
-// 静的ファイルの提供を有効化
+// ===== ミドルウェアの設定（順序が重要） =====
+// 1. エラーハンドリング（最初に配置）
+app.UseMiddleware<ErrorHandlingMiddleware>();
+
+// 2. 静的ファイルの提供
 app.UseStaticFiles();
 
-// ルーティングの設定
+// 3. セッション管理（認証前に実行）
+app.UseMiddleware<SessionMiddleware>();
+
+// 4. ルーティング
 app.UseRouting();
 
+// ===== エンドポイントのマッピング =====
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Todo}/{action=Index}/{id?}");
 
-// ポート8080でリッスン
-app.Run("http://localhost:8080");
+// favicon.icoは404を返す
+app.MapGet("/favicon.ico", () => Results.NotFound());
+
+// ===== ポート設定とサーバー起動 =====
+var port = AppSettings.GetPortNumber();
+Console.WriteLine($"listening port : {port}");
+
+app.Run($"http://localhost:{port}");

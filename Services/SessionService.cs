@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using System.Security.Cryptography;
 using TinyToDo.Models;
+using TinyToDo.Configuration;
 
 namespace TinyToDo.Services;
 
@@ -8,11 +9,11 @@ namespace TinyToDo.Services;
 public  class SessionService
 {
     private const string CookieSessionId = "sessionId";
-    private const ulong SessionIdSecret = 123456789;
 
     // セッションIDをキーとしてセッション情報を保持するディクショナリ
     private readonly Dictionary<string, HttpSession> _sessions = new();
     private readonly SessionIdSigner _sessionIdSigner;
+    private readonly bool _secureCookie;
 
     // シングルトンインスタンス
     private static SessionService? _instance;
@@ -21,7 +22,8 @@ public  class SessionService
     // プライベートコンストラクタ
     private SessionService() 
     {
-        _sessionIdSigner = new SessionIdSigner(SessionIdSecret);
+        _sessionIdSigner = new SessionIdSigner(AppSettings.GetSessionSecret());
+        _secureCookie = AppSettings.GetSecureCookie();
     }
 
     // シングルトンインスタンスを取得
@@ -42,6 +44,9 @@ public  class SessionService
             return _instance;
         }
     }
+
+    // Secure Cookie設定を取得
+    public bool IsSecureCookie => _secureCookie;
 
     // セッションを開始してCookieにセッションIDを書き込む
     public HttpSession StartSession(HttpContext context)
