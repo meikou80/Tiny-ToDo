@@ -137,10 +137,10 @@ function getTodoEditorControl(todoInput) {
  * Cancelボタンがクリックされた時のイベントハンドラ。
  * @param {Event} イベントオブジェクト
  */
-function onClickCancelButton(event) {
-  const cancelBtn = event.target;
-  const todoInput = cancelBtn.parentNode.previousElementSibling;
-  cancelTodoEdit(todoInput);
+function onClickCancelButton() {
+  // ハッシュフラグメントをクリアすることで、
+  // 編集中のToDoをキャンセルさせる
+  location.hash = "";
 }
 
 /**
@@ -151,14 +151,13 @@ function cancelTodoEdit(todoInput) {
   disableTodoInput(todoInput);
   // 編集内容を元に戻す
   todoInput.value = todoInput.dataset.originalValue;
-  currentEditingTodo = null;
 }
 
 /**
  * ToDoリストを取得して表示。
  */
 function fetchTodoItems() {
-  fetch("/todo")                          // <1>
+  fetch("/todos")                          // <1>
     .then(response => {
       if (!response.ok) {
         // エラー時はログイン画面に戻る
@@ -204,26 +203,31 @@ function onClickAddButton() {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({                 // <2>
+    body: JSON.stringify({                 
       todo: addInput.value,
     })
   };
 
   // リクエストの送信
-  fetch("/add", request)                   // <1>
+  fetch("/todos", request)                                       // <1>
     .then(response => {
       if (!response.ok) {
         // エラー時はログイン画面に戻る
         location.href = "/login";
       }
 
+      // LocationヘッダからToDo Idを取得する
+      const location = response.headers.get("location");         // <2>
+      const todoId = location.replace(/^\/todos\//, '');
+
+      // 画面にToDoを追加する
+      addTodoItem({                                              // <3>
+        id: todoId, 
+        todo: addInput.value,
+      });                   
+    
       // 入力したToDoをクリア
       addInput.value = "";
-      return response.json();
-    })
-    .then(data => {
-      // サーバから受信したIDを元に、新しいToDoを描画
-      addTodoItem(data);                   // <3>
     })
     .catch((err) => {
       console.error("Failed to send request: ", err);
@@ -291,7 +295,7 @@ function onClickSaveButton(event) {
 
   // リクエストの準備
   const request = {
-    method: "POST",
+    method: "PUT",
     headers: {
       "Content-Type": "application/json"
     },
@@ -301,12 +305,15 @@ function onClickSaveButton(event) {
     })
   };
 
-  // FetchAPIを使ってPOSTリクエストを送信
-  fetch("/edit", request)                                       // <3>
-    .then(() => {                                               // <4>
-      // 編集が成功したらInput要素を編集不可にする
-      disableTodoInput(todoInput);
-      currentEditingTodo = null;
+  // FetchAPIを使ってPUTリクエストを送信
+  fetch(`/todos/${todoInput.id}`, request)                                  // <3>
+    .then(response => {
+      if (!response.ok) {
+        // エラー時はログイン画面に戻る
+        location.href = "/login";
+      }
+      todoInput.dataset.originalValue = todoInput.value;
+      location.hash = "";
     })
     .catch((err) => {
       console.error("Failed to send request: ", err);
