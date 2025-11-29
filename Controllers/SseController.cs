@@ -7,13 +7,13 @@ using TinyToDo.Models;
 namespace TinyToDo.Controllers;
 
 [RequireAuthentication]
-public class ObserveController : Controller
+public class SseController : Controller
 {
-    private readonly ILogger<ObserveController> _logger;
+    private readonly ILogger<SseController> _logger;
     private readonly TodoChangeNotifier _notifier;
 
     // コンストラクタでILoggerとTodoChangeNotifierを注入
-    public ObserveController(ILogger<ObserveController> logger, TodoChangeNotifier notifier)
+    public SseController(ILogger<SseController> logger, TodoChangeNotifier notifier)
     {
         _logger = logger;
         _notifier = notifier;
@@ -100,3 +100,4 @@ public class ObserveController : Controller
         }
     }
 }
+
