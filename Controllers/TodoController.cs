@@ -147,7 +147,11 @@ public class TodoController : Controller
         {
             Source = GetSourceId(),
             Event = "add",
-            TodoItem = addedTodo
+            TodoItem = new TodoItemResponse 
+            { 
+                Id = addedTodo.Id,
+                Todo = addedTodo.Content 
+            }
         });
 
         return CreatedAtAction(
@@ -208,7 +212,11 @@ public class TodoController : Controller
         {
             Source = GetSourceId(),
             Event = "update",
-            TodoItem = result
+            TodoItem = new TodoItemResponse 
+            { 
+                Id = result.Id,
+                Todo = result.Content 
+            }
         });
         
         // 更新後のデータをJSON形式で返す
@@ -254,7 +262,11 @@ public class TodoController : Controller
         {
             Source = GetSourceId(),
             Event = "delete",
-            TodoItem = todo
+            TodoItem = new TodoItemResponse
+            { 
+                Id = todo.Id, 
+                Todo = todo.Content 
+            }
         });
 
         return NoContent();

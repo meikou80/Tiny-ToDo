@@ -25,11 +25,17 @@ public class ObserveController : Controller
         return (HttpSession)HttpContext.Items["Session"]!;
     }
 
+    // camelCase用のJSONオプション
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     // SSEイベントを送信するヘルパーメソッド
     private async Task SendSseEvent(string eventName, object data)
     {
         var id = $"ttd-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
-        var json = JsonSerializer.Serialize(data);
+        var json = JsonSerializer.Serialize(data, _jsonOptions);
 
         await Response.WriteAsync($"id: {id}\n");
         await Response.WriteAsync($"event: {eventName}\n");
@@ -43,9 +49,12 @@ public class ObserveController : Controller
     public async Task Observe(CancellationToken cancellationToken)
     {
         // SSE用のヘッダを設定
-        Response.Headers["Content-Type"] = "text/event-stream";
-        Response.Headers["Cache-Control"] = "no-cache";
-        Response.Headers["Connection"] = "keep-alive";
+        Response.ContentType = "text/event-stream";
+        Response.Headers.CacheControl = "no-cache";
+        Response.Headers.Connection = "keep-alive";
+
+        // レスポンスのバッファリングを無効にして、即座にクライアントに送信されるようにする
+        await Response.Body.FlushAsync();
 
         var session = GetSession();
         var userId = session.UserAccount?.Id ?? "";

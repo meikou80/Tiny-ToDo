@@ -22,6 +22,8 @@ function setup() {
   addEventListenerByQuery('button.btn-save', "click", onClickSaveButton);
 
   window.addEventListener("hashchange", onHashChange);
+
+  observeTodo();
 }
 
 /**
@@ -202,6 +204,7 @@ function onClickAddButton() {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "X-Tinytodo-Sourceid": sourceId,
     },
     body: JSON.stringify({                 
       todo: addInput.value,
@@ -318,6 +321,67 @@ function onClickSaveButton(event) {
     .catch((err) => {
       console.error("Failed to send request: ", err);
     });
+}
+
+// Server-sent Eventsの送信元を表すID
+let sourceId = "";
+
+function observeTodo() {
+  const eventSource = new EventSource("/observe");
+
+  eventSource.addEventListener("initial", (e) => {
+    const data = JSON.parse(e.data);
+    if (isObject(data) && typeof data.source === "string") {
+      sourceId = data.source;
+    } else {
+      console.warn("Invalid data: " + e.data);
+    }
+  });
+
+  eventSource.addEventListener("add", (e) => {
+    const data = JSON.parse(e.data);
+    if (!isObject(data) || !isObject(data.todoItem)) {
+      console.warn("Invalid data: " + e.data);
+    } 
+
+    if (data.source !== sourceId) {
+      addTodoItem(data.todoItem);
+    }
+  });
+
+  eventSource.addEventListener("update", (e) => {
+    const data = JSON.parse(e.data);
+    if (!isObject(data) || !isObject(data.todoItem)) {
+      console.warn("Invalid data: " + e.data);
+    }
+
+    if (data.source !== sourceId) {
+      updateTodoItem(data.todoItem);
+    }
+  });
+}
+
+/**
+ * ToDo項目を更新する。
+ *
+ * @param todoItem 対象のHTML要素
+ */
+function updateTodoItem(todoItem) {                
+  const todoElement = document.querySelector(
+    `ul#todo-list .todo-item-container input[id="${todoItem.id}"].todo`);
+  if (isNotNull(todoElement)) {
+    todoElement.value = todoItem.todo;
+  }
+}
+
+/**
+ * 値がオブジェクトかどうかを判定する。
+ *
+ * @param value 判定する値
+ * @returns {boolean} オブジェクトの場合は true
+ */
+function isObject(value) {
+  return typeof value === "object" && isNotNull(value) && !Array.isArray(value);
 }
 
 /**

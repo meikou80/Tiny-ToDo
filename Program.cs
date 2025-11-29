@@ -1,5 +1,6 @@
 using TinyToDo.Configuration;
 using TinyToDo.Middlewares;
+using TinyToDo.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
