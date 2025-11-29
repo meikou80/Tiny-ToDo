@@ -56,7 +56,7 @@ public  class SessionService
 
         // セッション情報を生成する
         Console.WriteLine($"start session : {sessionId}");
-        var session = new HttpSession(sessionId, TimeSpan.FromMinutes(10));
+        var session = new HttpSession(sessionId);
         _sessions[sessionId] = session;
         session.SetCookie(context);
 
