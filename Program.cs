@@ -27,10 +27,14 @@ app.UseMiddleware<ErrorHandlingMiddleware>();
 // 2. 静的ファイルの提供
 app.UseStaticFiles();
 
-// 3. セッション管理（認証前に実行）
+// 3. WebSocketのサポートを有効化
+// ※ HTTPリクエストをWebSocketにアップグレードするために必要
+app.UseWebSockets();
+
+// 4. セッション管理（認証前に実行）
 app.UseMiddleware<SessionMiddleware>();
 
-// 4. ルーティング
+// 5. ルーティング
 app.UseRouting();
 
 // ===== エンドポイントのマッピング =====
