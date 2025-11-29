@@ -9,17 +9,25 @@ namespace TinyToDo.Controllers;
 public class TodoController : Controller
 {
     private readonly ILogger<TodoController> _logger;
+    private readonly TodoChangeNotifier _notifier;
 
-    // コンストラクタでILoggerを注入
-    public TodoController(ILogger<TodoController> logger)
+    // コンストラクタでILoggerとTodoChangeNotifierを注入
+    public TodoController(ILogger<TodoController> logger, TodoChangeNotifier notifier)
     {
         _logger = logger;
+        _notifier = notifier;
     }
 
     // セッション情報をHttpContext.Itemsから取得するヘルパーメソッド
     private HttpSession GetSession()
     {
         return (HttpSession)HttpContext.Items["Session"]!;
+    }
+
+    // X-Tinytodo-SourceidヘッダからソースIDを取得するヘルパーメソッド
+    private string GetSourceId()
+    {
+        return Request.Headers["X-Tinytodo-Sourceid"].ToString();
     }
 
     // /エンドポイント（HTMLページを返す）
@@ -134,6 +142,14 @@ public class TodoController : Controller
             request.Todo
         );
 
+        // ToDo追加をSSE経由で通知する
+        _notifier.Notify(session.UserAccount?.Id ?? "", new TodoChangeEvent
+        {
+            Source = GetSourceId(),
+            Event = "add",
+            TodoItem = addedTodo
+        });
+
         return CreatedAtAction(
             nameof(GetTodo),           // GetTodoアクションを参照
             new { id = addedTodo.Id }, // ルートパラメータ
@@ -186,6 +202,14 @@ public class TodoController : Controller
             id,
             request.Todo
         );
+
+        // ToDo更新をSSE経由で通知する
+        _notifier.Notify(session.UserAccount?.Id ?? "", new TodoChangeEvent
+        {
+            Source = GetSourceId(),
+            Event = "update",
+            TodoItem = result
+        });
         
         // 更新後のデータをJSON形式で返す
         return Json(new TodoItemResponse
@@ -224,6 +248,14 @@ public class TodoController : Controller
             session.SessionId,
             id
         );
+
+        // ToDo削除をSSE経由で通知する
+        _notifier.Notify(session.UserAccount?.Id ?? "", new TodoChangeEvent
+        {
+            Source = GetSourceId(),
+            Event = "delete",
+            TodoItem = todo
+        });
 
         return NoContent();
     }

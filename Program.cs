@@ -14,6 +14,9 @@ builder.Services.AddLogging(logging =>
     logging.SetMinimumLevel(LogLevel.Information);
 });
 
+// SSE通信に伴うDI登録
+builder.Services.AddSingleton<TodoChangeNotifier>();
+
 var app = builder.Build();
 
 // ===== ミドルウェアの設定（順序が重要） =====
