@@ -1,39 +1,109 @@
 # Tiny ToDo - C#版
 
-このプロジェクトは、元のGo言語版をASP.NET Coreで書き換えたバージョンです。
+## このプロジェクトについて
+
+このプロジェクトは、書籍「[改訂新版]プロになるためのWeb技術入門」（小森裕介 著、技術評論社）のTiny ToDoアプリケーションを、自習目的でC#（ASP.NET Core）で実装したものです。
+
+### 原著・オリジナルリポジトリ
+
+- **書籍**: [[改訂新版]プロになるためのWeb技術入門](https://direct.gihyo.jp/view/item/000000003591)（技術評論社）
+- **オリジナルリポジトリ（Go言語版）**: [little-forest/webtech-fundamentals](https://github.com/little-forest/webtech-fundamentals/tree/v1-latest)
+
+> ⚠️ **注意**: このリポジトリは個人の学習目的で作成されたものであり、原著者・出版社とは無関係です。
 
 ## ファイル構成
 
-- `Program.cs` - アプリケーションのエントリーポイント（main.goに相当）
-- `Controllers/` - コントローラー
-- `Services/` - ビジネスロジック
-  - `SessionService.cs` - セッション管理
-  - `SessionIdSigner.cs` - セッションID署名・検証（session.goのmakeSessionId/verifySessionIdに相当）
-  - `TodoService.cs` - ToDo管理
-  - `UserAccountService.cs` - ユーザーアカウント管理
-- `Models/` - データモデル
-- `Views/` - Razorビュー
-- `wwwroot/static/` - 静的ファイル（CSS, JavaScript）
-- `TinyToDo.csproj` - プロジェクトファイル
+```
+Tiny ToDo/
+├── Program.cs                    # アプリケーションのエントリーポイント
+├── TinyToDo.csproj               # プロジェクトファイル
+│
+├── Controllers/                  # コントローラー
+│   ├── TodoController.cs         # ToDo CRUD操作
+│   ├── LoginController.cs        # ログイン処理
+│   ├── CreateAccountController.cs # アカウント作成処理
+│   ├── NewAccountController.cs   # 新規アカウント画面
+│   ├── SseController.cs          # Server-Sent Events（リアルタイム通知）
+│   └── WebSocketController.cs    # WebSocket（リアルタイム通知）
+│
+├── Services/                     # ビジネスロジック
+│   ├── SessionService.cs         # セッション管理
+│   ├── SessionIdSigner.cs        # セッションID署名・検証
+│   ├── TodoService.cs            # ToDo管理
+│   ├── TodoIdGenerator.cs        # ToDo ID生成
+│   ├── TodoChangeNotifier.cs     # ToDo変更通知（SSE/WebSocket共通）
+│   └── UserAccountService.cs     # ユーザーアカウント管理
+│
+├── Models/                       # データモデル
+│   ├── HttpSession.cs            # セッション情報
+│   ├── UserAccount.cs            # ユーザーアカウント
+│   ├── TodoModel.cs              # ToDoデータ
+│   ├── TodoRequest.cs            # ToDoリクエスト
+│   ├── TodoChangeEvent.cs        # 変更イベント
+│   └── PageData.cs               # ページデータ
+│
+├── Middlewares/                  # ミドルウェア
+│   ├── SessionMiddleware.cs      # セッション管理ミドルウェア
+│   └── ErrorHandlingMiddleware.cs # エラーハンドリング
+│
+├── Filters/                      # フィルター
+│   └── RequireAuthenticationAttribute.cs # 認証必須属性
+│
+├── Configuration/                # 設定
+│   └── AppSettings.cs            # アプリケーション設定
+│
+├── Views/                        # Razorビュー
+│   ├── Login/                    # ログイン画面
+│   └── Todo/                     # ToDo画面
+│
+└── wwwroot/static/               # 静的ファイル
+    ├── style.css                 # スタイルシート
+    └── todo.js                   # クライアントサイドJavaScript
+```
 
 ## 実行方法
 
-1. .NET 8.0 SDKがインストールされていることを確認してください
-2. プロジェクトディレクトリで以下のコマンドを実行：
+### 前提条件
+
+- .NET 8.0 SDK
+
+### 起動手順
+
+1. プロジェクトディレクトリに移動
+2. 以下のコマンドを実行：
 
 ```bash
 dotnet run
 ```
 
-3. ブラウザで `http://localhost:8080/todo` にアクセス
+3. ブラウザで `http://localhost:8080` にアクセス
 
-## 主な変更点
+## 主な機能
 
-- Go言語のnet/httpパッケージ → ASP.NET Core
-- html/templateパッケージ → Razorビューエンジン
-- テンプレート構文: `{{range .}}` → `@foreach`
-- 静的ファイル: `static/` → `wwwroot/static/`
-- ポート8080で同じように動作します
+- ユーザー認証（ログイン/ログアウト/アカウント作成）
+- ToDo管理（追加/編集/削除）
+- リアルタイム同期
+  - **SSE（Server-Sent Events）**: `/observe`
+  - **WebSocket**: `/ws/observe`
+
+## Go版からの主な変更点
+
+| Go版 | C#版 |
+|------|------|
+| `net/http` | ASP.NET Core |
+| `html/template` | Razorビューエンジン |
+| `{{range .}}` | `@foreach` |
+| `static/` | `wwwroot/static/` |
+| `gorilla/websocket` | `System.Net.WebSockets` |
+
+## リアルタイム通知の切り替え
+
+`wwwroot/static/todo.js` の `OBSERVE_TYPE` で通信方式を切り替えられます：
+
+```javascript
+// 通信方式の設定
+const OBSERVE_TYPE = "websocket"; // "sse" または "websocket"
+```
 
 ## セキュリティ機能
 
@@ -46,24 +116,32 @@ Go版の`session.go`に実装されている署名付きセッションID生成�
 - Base64 URL-safe エンコーディング
 - タイミング攻撃対策（`CryptographicOperations.FixedTimeEquals`）
 
-**動作確認方法：**
+## ライセンス
 
-C# Interactiveやlinqpadで以下のコードを実行：
+このプロジェクトは、オリジナルの[webtech-fundamentals](https://github.com/little-forest/webtech-fundamentals)と同様に**MITライセンス**の下で公開されています。
 
-```csharp
-using TinyToDo.Services;
+### オリジナルの著作権表示
 
-var signer = new SessionIdSigner(123456789);
+```
+MIT License
 
-// 1. 生成と検証
-var sessionId = signer.GenerateSignedSessionId();
-Console.WriteLine($"Generated: {sessionId}");
-Console.WriteLine($"Valid: {signer.VerifySessionId(sessionId)}"); // → True
+Copyright (c) 2024 KOMORI Yusuke
 
-// 2. 改ざん検出
-var tampered = sessionId.Substring(0, sessionId.Length - 5) + "XXXXX";
-Console.WriteLine($"Tampered Valid: {signer.VerifySessionId(tampered)}"); // → False
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-// 3. 不正な形式
-Console.WriteLine($"Invalid Valid: {signer.VerifySessionId("invalid")}"); // → False
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 ```
