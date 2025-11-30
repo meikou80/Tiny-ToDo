@@ -1,3 +1,9 @@
+// Server-sent Events / WebSocketの送信元を表すID
+let sourceId = "";
+
+// 通信方式の設定
+const OBSERVE_TYPE = "websocket"; // "sse" または "websocket"
+
 // defer属性によって、DOMの構築がすべて完了してから setup 関数を呼び出す
 setup();
 
@@ -23,6 +29,7 @@ function setup() {
 
   window.addEventListener("hashchange", onHashChange);
 
+  // 通信方式に応じて観測を開始
   observeTodo();
 }
 
@@ -323,42 +330,76 @@ function onClickSaveButton(event) {
     });
 }
 
-// Server-sent Eventsの送信元を表すID
-let sourceId = "";
+// 共通のイベントハンドラ
+function handleInitialEvent(data) {
+  if (isObject(data) && typeof data.source === "string") {
+    sourceId = data.source;
+  } else {
+    console.warn("Invalid data: " + data);
+  }
+}
 
+function handleAddEvent(data) {
+  if (data.source !== sourceId) {
+    addTodoItem(data.todoItem);
+  }
+}
+
+function handleUpdateEvent(data) {
+  if (data.source !== sourceId) {
+    updateTodoItem(data.todoItem);
+  }
+}
+
+// メイン関数（モードで分岐）
 function observeTodo() {
+  if (OBSERVE_TYPE === "sse") {
+    observeTodoWithSse();
+  } else if (OBSERVE_TYPE === "websocket") {
+    observeTodoWithWebSocket();
+  }
+}
+
+// SSE実装
+function observeTodoWithSse() {
   const eventSource = new EventSource("/observe");
 
   eventSource.addEventListener("initial", (e) => {
     const data = JSON.parse(e.data);
-    if (isObject(data) && typeof data.source === "string") {
-      sourceId = data.source;
-    } else {
-      console.warn("Invalid data: " + e.data);
-    }
+    handleInitialEvent(data);
   });
 
   eventSource.addEventListener("add", (e) => {
     const data = JSON.parse(e.data);
-    if (!isObject(data) || !isObject(data.todoItem)) {
-      console.warn("Invalid data: " + e.data);
-    } 
-
-    if (data.source !== sourceId) {
-      addTodoItem(data.todoItem);
-    }
+    handleAddEvent(data);
   });
 
   eventSource.addEventListener("update", (e) => {
     const data = JSON.parse(e.data);
-    if (!isObject(data) || !isObject(data.todoItem)) {
-      console.warn("Invalid data: " + e.data);
-    }
-
-    if (data.source !== sourceId) {
-      updateTodoItem(data.todoItem);
-    }
+    handleUpdateEvent(data);
   });
+}
+
+// WebSocket実装
+function observeTodoWithWebSocket() {
+  const ws = new WebSocket("/ws/observe");
+
+  ws.onmessage = (e) => {
+    const message = JSON.parse(e.data);
+    const data = message.data;
+
+    switch (message.event) {
+      case "initial":
+        handleInitialEvent(data);
+        break;
+      case "add":
+        handleAddEvent(data);
+        break;
+      case "update":
+        handleUpdateEvent(data);
+        break;
+    }
+  }
 }
 
 /**
