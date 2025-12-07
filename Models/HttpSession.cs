@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using TinyToDo.Services;
+using TinyToDo.Configuration;
 
 namespace TinyToDo.Models;
 
@@ -36,13 +37,21 @@ public class HttpSession
     // セッションIDをCookieへ書き込む
     public void SetCookie(HttpContext context)
     {
+        var sameSiteMode = AppSettings.GetSameSiteMode();
+        
+        // SameSite=None の場合は Secure 必須
+        var secure = sameSiteMode == SameSiteMode.None
+            || SessionService.Instance.IsSecureCookie;
+        
         var cookieOptions = new CookieOptions
         {
             Expires = new DateTimeOffset(Expires),
             HttpOnly = true,
             Path = "/",
-            Secure = SessionService.Instance.IsSecureCookie
+            Secure = secure,
+            SameSite = sameSiteMode
         };
+        
         context.Response.Cookies.Append("sessionId", SessionId, cookieOptions);
     }
 }

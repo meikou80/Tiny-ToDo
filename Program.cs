@@ -47,6 +47,9 @@ app.MapGet("/favicon.ico", () => Results.NotFound());
 
 // ===== ポート設定とサーバー起動 =====
 var port = AppSettings.GetPortNumber();
+var sameSiteMode = AppSettings.GetSameSiteMode();
+
 Console.WriteLine($"listening port : {port}");
+Console.WriteLine($"SameSite mode  : {sameSiteMode}");
 
 app.Run($"http://localhost:{port}");

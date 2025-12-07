@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http;
+
 namespace TinyToDo.Configuration;
 
 public class AppSettings
@@ -32,5 +34,19 @@ public class AppSettings
             return port;
         }
         return 8080; // デフォルト
+    }
+
+    // SAMESITE_COOKIE環境変数を読み取る
+    // 値: "strict", "lax", "none" (デフォルト: "lax")
+    public static SameSiteMode GetSameSiteMode()
+    {
+        var value = Environment.GetEnvironmentVariable("SAMESITE_COOKIE")?.ToLower();
+        return value switch
+        {
+            "strict" => SameSiteMode.Strict,
+            "none" => SameSiteMode.None,
+            "lax" => SameSiteMode.Lax,
+            _ => SameSiteMode.Lax
+        };
     }
 }

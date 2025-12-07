@@ -1,0 +1,54 @@
+/* 攻撃者サイト（SameSite検証用）スタイル */
+
+body {
+    font-family: sans-serif;
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #1a1a2e;
+    color: #eee;
+}
+
+h1 {
+    color: #e94560;
+    font-size: 1.5em;
+}
+
+h3 {
+    color: #eee;
+    margin-bottom: 10px;
+}
+
+.warning {
+    background: #e94560;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.attack-section {
+    background: #16213e;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #e94560;
+}
+
+button {
+    background: #e94560;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+button:hover {
+    background: #ff6b6b;
+}
+
+.note {
+    margin-top: 15px;
+    font-size: 0.85em;
+    color: #aaa;
+}

