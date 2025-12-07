@@ -2,7 +2,7 @@
 let sourceId = "";
 
 // 通信方式の設定
-//const OBSERVE_TYPE = "websocket"; // "sse" または "websocket"
+const OBSERVE_TYPE = "none"; // "sse" または "websocket"を選択可能、どちらも不要な場合は"none"にする
 
 // defer属性によって、DOMの構築がすべて完了してから setup 関数を呼び出す
 setup();
